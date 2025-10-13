@@ -105,7 +105,7 @@ class FirebaseAnalytics extends FirebasePluginPlatform {
   }) async {
     _logEventNameValidation(name);
 
-    _assertParameterTypesAreCorrect(parameters);
+    _assertParameterTypesAreCorrect(parameters?.cast<String, Object>());
 
     await _delegate.logEvent(
       name: name,
