@@ -6,10 +6,7 @@ part of '../firebase_analytics.dart';
 
 /// Firebase Analytics API.
 class FirebaseAnalytics extends FirebasePluginPlatform {
-  FirebaseAnalytics._({
-    required this.app,
-    this.webOptions,
-  }) : super(app.name, 'plugins.flutter.io/firebase_analytics');
+  FirebaseAnalytics._({required this.app, this.webOptions}) : super(app.name, 'plugins.flutter.io/firebase_analytics');
 
   static Map<String, FirebaseAnalytics> _firebaseAnalyticsInstances = {};
 
@@ -21,27 +18,20 @@ class FirebaseAnalytics extends FirebasePluginPlatform {
   FirebaseAnalyticsPlatform? _delegatePackingProperty;
 
   FirebaseAnalyticsPlatform get _delegate {
-    return _delegatePackingProperty ??=
-        FirebaseAnalyticsPlatform.instanceFor(app: app, webOptions: webOptions);
+    return _delegatePackingProperty ??= FirebaseAnalyticsPlatform.instanceFor(app: app, webOptions: webOptions);
   }
 
   /// Returns an instance using a specified [FirebaseApp].
   ///
   /// Note; multi-app support is only supported on web.
-  factory FirebaseAnalytics.instanceFor({
-    required FirebaseApp app,
-    Map<String, dynamic>? webOptions,
-  }) {
+  factory FirebaseAnalytics.instanceFor({required FirebaseApp app, Map<String, dynamic>? webOptions}) {
     if (kIsWeb || app.name == defaultFirebaseAppName) {
       return _firebaseAnalyticsInstances.putIfAbsent(app.name, () {
         return FirebaseAnalytics._(app: app, webOptions: webOptions);
       });
     }
 
-    throw PlatformException(
-      code: 'default-app',
-      message: 'Analytics has multi-app support for web only.',
-    );
+    throw PlatformException(code: 'default-app', message: 'Analytics has multi-app support for web only.');
   }
 
   /// The [FirebaseApp] for this current [FirebaseAnalytics] instance.
@@ -105,14 +95,11 @@ class FirebaseAnalytics extends FirebasePluginPlatform {
   }) async {
     _logEventNameValidation(name);
 
-    _assertParameterTypesAreCorrect(parameters?.cast<String, Object>());
+    // _assertParameterTypesAreCorrect(parameters?.cast<String, Object>());
 
     await _delegate.logEvent(
       name: name,
-      parameters: filterOutNulls(<String, Object?>{
-        ...?parameters,
-        'items': _marshalItems(items),
-      }),
+      parameters: filterOutNulls(<String, Object?>{...?parameters, 'items': _marshalItems(items)}),
       callOptions: callOptions,
     );
   }
@@ -148,20 +135,16 @@ class FirebaseAnalytics extends FirebasePluginPlatform {
     await _delegate.setConsent(
       adStorageConsentGranted: adStorageConsentGranted,
       analyticsStorageConsentGranted: analyticsStorageConsentGranted,
-      adPersonalizationSignalsConsentGranted:
-          adPersonalizationSignalsConsentGranted,
+      adPersonalizationSignalsConsentGranted: adPersonalizationSignalsConsentGranted,
       adUserDataConsentGranted: adUserDataConsentGranted,
       functionalityStorageConsentGranted: functionalityStorageConsentGranted,
-      personalizationStorageConsentGranted:
-          personalizationStorageConsentGranted,
+      personalizationStorageConsentGranted: personalizationStorageConsentGranted,
       securityStorageConsentGranted: securityStorageConsentGranted,
     );
   }
 
   /// Adds parameters that will be set on every event logged from the SDK, including automatic ones.
-  Future<void> setDefaultEventParameters(
-    Map<String, Object?>? defaultParameters,
-  ) async {
+  Future<void> setDefaultEventParameters(Map<String, Object?>? defaultParameters) async {
     defaultParameters?.forEach((key, value) {
       assert(
         value is String || value is num || value == null,
@@ -185,10 +168,7 @@ class FirebaseAnalytics extends FirebasePluginPlatform {
   /// This feature must be used in accordance with [Google's Privacy Policy][1].
   ///
   /// [1]: https://www.google.com/policies/privacy/
-  Future<void> setUserId({
-    String? id,
-    AnalyticsCallOptions? callOptions,
-  }) async {
+  Future<void> setUserId({String? id, AnalyticsCallOptions? callOptions}) async {
     await _delegate.setUserId(id: id, callOptions: callOptions);
   }
 
@@ -211,9 +191,7 @@ class FirebaseAnalytics extends FirebasePluginPlatform {
   ///
   ///  * https://firebase.google.com/docs/reference/android/com/google/firebase/analytics/FirebaseAnalytics.html#setCurrentScreen(android.app.Activity, java.lang.String, java.lang.String)
   ///  * https://firebase.google.com/docs/reference/ios/firebaseanalytics/api/reference/Classes/FIRAnalytics#setscreennamescreenclass
-  @Deprecated(
-    'setCurrentScreen() has been deprecated. Please use logScreenView()',
-  )
+  @Deprecated('setCurrentScreen() has been deprecated. Please use logScreenView()')
   Future<void> setCurrentScreen({
     required String? screenName,
     String screenClassOverride = 'Flutter',
@@ -245,26 +223,15 @@ class FirebaseAnalytics extends FirebasePluginPlatform {
     required String? value,
     AnalyticsCallOptions? callOptions,
   }) async {
-    if (name.isEmpty ||
-        name.length > 24 ||
-        name.indexOf(_alpha) != 0 ||
-        name.contains(_nonAlphaNumeric)) {
-      throw ArgumentError.value(
-        name,
-        'name',
-        'must contain 1 to 24 alphanumeric characters.',
-      );
+    if (name.isEmpty || name.length > 24 || name.indexOf(_alpha) != 0 || name.contains(_nonAlphaNumeric)) {
+      throw ArgumentError.value(name, 'name', 'must contain 1 to 24 alphanumeric characters.');
     }
 
     if (name.startsWith('firebase_')) {
       throw ArgumentError.value(name, 'name', '"firebase_" prefix is reserved');
     }
 
-    await _delegate.setUserProperty(
-      name: name,
-      value: value,
-      callOptions: callOptions,
-    );
+    await _delegate.setUserProperty(name: name, value: value, callOptions: callOptions);
   }
 
   /// Clears all analytics data for this app from the device and resets the app instance id.
@@ -438,17 +405,10 @@ class FirebaseAnalytics extends FirebasePluginPlatform {
   /// Logs the standard `app_open` event.
   ///
   /// See: https://firebase.google.com/docs/reference/android/com/google/firebase/analytics/FirebaseAnalytics.Event.html#APP_OPEN
-  Future<void> logAppOpen({
-    AnalyticsCallOptions? callOptions,
-    Map<String, Object>? parameters,
-  }) {
+  Future<void> logAppOpen({AnalyticsCallOptions? callOptions, Map<String, Object>? parameters}) {
     _assertParameterTypesAreCorrect(parameters);
 
-    return _delegate.logEvent(
-      name: 'app_open',
-      parameters: parameters,
-      callOptions: callOptions,
-    );
+    return _delegate.logEvent(name: 'app_open', parameters: parameters, callOptions: callOptions);
   }
 
   /// Logs the standard `begin_checkout` event.
@@ -589,10 +549,7 @@ class FirebaseAnalytics extends FirebasePluginPlatform {
 
     return _delegate.logEvent(
       name: 'join_group',
-      parameters: filterOutNulls(<String, Object?>{
-        _GROUP_ID: groupId,
-        if (parameters != null) ...parameters,
-      }),
+      parameters: filterOutNulls(<String, Object?>{_GROUP_ID: groupId, if (parameters != null) ...parameters}),
       callOptions: callOptions,
     );
   }
@@ -635,10 +592,7 @@ class FirebaseAnalytics extends FirebasePluginPlatform {
 
     return _delegate.logEvent(
       name: 'level_start',
-      parameters: filterOutNulls(<String, Object?>{
-        _LEVEL_NAME: levelName,
-        if (parameters != null) ...parameters,
-      }),
+      parameters: filterOutNulls(<String, Object?>{_LEVEL_NAME: levelName, if (parameters != null) ...parameters}),
       callOptions: callOptions,
     );
   }
@@ -691,19 +645,12 @@ class FirebaseAnalytics extends FirebasePluginPlatform {
   /// has logged in.
   ///
   /// See: https://firebase.google.com/docs/reference/android/com/google/firebase/analytics/FirebaseAnalytics.Event.html#LOGIN
-  Future<void> logLogin({
-    String? loginMethod,
-    Map<String, Object>? parameters,
-    AnalyticsCallOptions? callOptions,
-  }) {
+  Future<void> logLogin({String? loginMethod, Map<String, Object>? parameters, AnalyticsCallOptions? callOptions}) {
     _assertParameterTypesAreCorrect(parameters);
 
     return _delegate.logEvent(
       name: 'login',
-      parameters: filterOutNulls(<String, Object?>{
-        _METHOD: loginMethod,
-        if (parameters != null) ...parameters,
-      }),
+      parameters: filterOutNulls(<String, Object?>{_METHOD: loginMethod, if (parameters != null) ...parameters}),
       callOptions: callOptions,
     );
   }
@@ -942,20 +889,18 @@ class FirebaseAnalytics extends FirebasePluginPlatform {
 
     return _delegate.logEvent(
       name: 'search',
-      parameters: filterOutNulls(
-        <String, Object?>{
-          _SEARCH_TERM: searchTerm,
-          _NUMBER_OF_NIGHTS: numberOfNights,
-          _NUMBER_OF_ROOMS: numberOfRooms,
-          _NUMBER_OF_PASSENGERS: numberOfPassengers,
-          _ORIGIN: origin,
-          _DESTINATION: destination,
-          _START_DATE: startDate,
-          _END_DATE: endDate,
-          _TRAVEL_CLASS: travelClass,
-          if (parameters != null) ...parameters,
-        },
-      ),
+      parameters: filterOutNulls(<String, Object?>{
+        _SEARCH_TERM: searchTerm,
+        _NUMBER_OF_NIGHTS: numberOfNights,
+        _NUMBER_OF_ROOMS: numberOfRooms,
+        _NUMBER_OF_PASSENGERS: numberOfPassengers,
+        _ORIGIN: origin,
+        _DESTINATION: destination,
+        _START_DATE: startDate,
+        _END_DATE: endDate,
+        _TRAVEL_CLASS: travelClass,
+        if (parameters != null) ...parameters,
+      }),
       callOptions: callOptions,
     );
   }
@@ -1018,18 +963,12 @@ class FirebaseAnalytics extends FirebasePluginPlatform {
   /// logged out users.
   ///
   /// See: https://firebase.google.com/docs/reference/android/com/google/firebase/analytics/FirebaseAnalytics.Event.html#SIGN_UP
-  Future<void> logSignUp({
-    required String signUpMethod,
-    Map<String, Object>? parameters,
-  }) {
+  Future<void> logSignUp({required String signUpMethod, Map<String, Object>? parameters}) {
     _assertParameterTypesAreCorrect(parameters);
 
     return _delegate.logEvent(
       name: 'sign_up',
-      parameters: filterOutNulls(<String, Object?>{
-        _METHOD: signUpMethod,
-        if (parameters != null) ...parameters,
-      }),
+      parameters: filterOutNulls(<String, Object?>{_METHOD: signUpMethod, if (parameters != null) ...parameters}),
     );
   }
 
@@ -1065,15 +1004,10 @@ class FirebaseAnalytics extends FirebasePluginPlatform {
   /// users complete this process and move on to the full app experience.
   ///
   /// See: https://firebase.google.com/docs/reference/android/com/google/firebase/analytics/FirebaseAnalytics.Event.html#TUTORIAL_BEGIN
-  Future<void> logTutorialBegin({
-    Map<String, Object>? parameters,
-  }) {
+  Future<void> logTutorialBegin({Map<String, Object>? parameters}) {
     _assertParameterTypesAreCorrect(parameters);
 
-    return _delegate.logEvent(
-      name: 'tutorial_begin',
-      parameters: parameters,
-    );
+    return _delegate.logEvent(name: 'tutorial_begin', parameters: parameters);
   }
 
   /// Logs the standard `tutorial_complete` event.
@@ -1083,15 +1017,10 @@ class FirebaseAnalytics extends FirebasePluginPlatform {
   /// completion rate of your on-boarding process.
   ///
   /// See: https://firebase.google.com/docs/reference/android/com/google/firebase/analytics/FirebaseAnalytics.Event.html#TUTORIAL_COMPLETE
-  Future<void> logTutorialComplete({
-    Map<String, Object>? parameters,
-  }) {
+  Future<void> logTutorialComplete({Map<String, Object>? parameters}) {
     _assertParameterTypesAreCorrect(parameters);
 
-    return _delegate.logEvent(
-      name: 'tutorial_complete',
-      parameters: parameters,
-    );
+    return _delegate.logEvent(name: 'tutorial_complete', parameters: parameters);
   }
 
   /// Logs the standard `unlock_achievement` event with a given achievement
@@ -1103,18 +1032,12 @@ class FirebaseAnalytics extends FirebasePluginPlatform {
   /// experiencing all that your game has to offer.
   ///
   /// See: https://firebase.google.com/docs/reference/android/com/google/firebase/analytics/FirebaseAnalytics.Event.html#UNLOCK_ACHIEVEMENT
-  Future<void> logUnlockAchievement({
-    required String id,
-    Map<String, Object>? parameters,
-  }) {
+  Future<void> logUnlockAchievement({required String id, Map<String, Object>? parameters}) {
     _assertParameterTypesAreCorrect(parameters);
 
     return _delegate.logEvent(
       name: 'unlock_achievement',
-      parameters: filterOutNulls(<String, Object?>{
-        _ACHIEVEMENT_ID: id,
-        if (parameters != null) ...parameters,
-      }),
+      parameters: filterOutNulls(<String, Object?>{_ACHIEVEMENT_ID: id, if (parameters != null) ...parameters}),
     );
   }
 
@@ -1213,18 +1136,12 @@ class FirebaseAnalytics extends FirebasePluginPlatform {
   /// search.
   ///
   /// See: https://firebase.google.com/docs/reference/android/com/google/firebase/analytics/FirebaseAnalytics.Event.html#VIEW_SEARCH_RESULTS
-  Future<void> logViewSearchResults({
-    required String searchTerm,
-    Map<String, Object>? parameters,
-  }) {
+  Future<void> logViewSearchResults({required String searchTerm, Map<String, Object>? parameters}) {
     _assertParameterTypesAreCorrect(parameters);
 
     return _delegate.logEvent(
       name: 'view_search_results',
-      parameters: filterOutNulls(<String, Object?>{
-        _SEARCH_TERM: searchTerm,
-        if (parameters != null) ...parameters,
-      }),
+      parameters: filterOutNulls(<String, Object?>{_SEARCH_TERM: searchTerm, if (parameters != null) ...parameters}),
     );
   }
 
@@ -1274,68 +1191,48 @@ class FirebaseAnalytics extends FirebasePluginPlatform {
   /// Requires dependency GoogleAppMeasurementOnDeviceConversion to be linked in, otherwise it is a no-op.
   ///
   /// Only available on iOS.
-  Future<void> initiateOnDeviceConversionMeasurementWithEmailAddress(
-    String emailAddress,
-  ) async {
+  Future<void> initiateOnDeviceConversionMeasurementWithEmailAddress(String emailAddress) async {
     if (defaultTargetPlatform != TargetPlatform.iOS) {
-      throw UnimplementedError(
-        'initiateOnDeviceConversionMeasurementWithEmailAddress() is only supported on iOS.',
-      );
+      throw UnimplementedError('initiateOnDeviceConversionMeasurementWithEmailAddress() is only supported on iOS.');
     }
-    await _delegate.initiateOnDeviceConversionMeasurement(
-      emailAddress: emailAddress,
-    );
+    await _delegate.initiateOnDeviceConversionMeasurement(emailAddress: emailAddress);
   }
 
   /// Initiates on-device conversion measurement given a user phone number in E.164 format.
   /// Requires dependency GoogleAppMeasurementOnDeviceConversion to be linked in, otherwise it is a no-op.
   ///
   /// Only available on iOS.
-  Future<void> initiateOnDeviceConversionMeasurementWithPhoneNumber(
-    String phoneNumber,
-  ) async {
+  Future<void> initiateOnDeviceConversionMeasurementWithPhoneNumber(String phoneNumber) async {
     if (defaultTargetPlatform != TargetPlatform.iOS) {
-      throw UnimplementedError(
-        'initiateOnDeviceConversionMeasurementWithPhoneNumber() is only supported on iOS.',
-      );
+      throw UnimplementedError('initiateOnDeviceConversionMeasurementWithPhoneNumber() is only supported on iOS.');
     }
-    await _delegate.initiateOnDeviceConversionMeasurement(
-      phoneNumber: phoneNumber,
-    );
+    await _delegate.initiateOnDeviceConversionMeasurement(phoneNumber: phoneNumber);
   }
 
   /// Initiates on-device conversion measurement given a sha256-hashed, UTF8 encoded, user email address.
   /// Requires dependency GoogleAppMeasurementOnDeviceConversion to be linked in, otherwise it is a no-op.
   ///
   /// Only available on iOS.
-  Future<void> initiateOnDeviceConversionMeasurementWithHashedEmailAddress(
-    String hashedEmailAddress,
-  ) async {
+  Future<void> initiateOnDeviceConversionMeasurementWithHashedEmailAddress(String hashedEmailAddress) async {
     if (defaultTargetPlatform != TargetPlatform.iOS) {
       throw UnimplementedError(
         'initiateOnDeviceConversionMeasurementWithHashedEmailAddress() is only supported on iOS.',
       );
     }
-    await _delegate.initiateOnDeviceConversionMeasurement(
-      hashedEmailAddress: hashedEmailAddress,
-    );
+    await _delegate.initiateOnDeviceConversionMeasurement(hashedEmailAddress: hashedEmailAddress);
   }
 
   /// Initiates on-device conversion measurement given a sha256-hashed, UTF8 encoded, phone number in E.164 format.
   /// Requires dependency GoogleAppMeasurementOnDeviceConversion to be linked in, otherwise it is a no-op.
   ///
   /// Only available on iOS.
-  Future<void> initiateOnDeviceConversionMeasurementWithHashedPhoneNumber(
-    String hashedPhoneNumber,
-  ) async {
+  Future<void> initiateOnDeviceConversionMeasurementWithHashedPhoneNumber(String hashedPhoneNumber) async {
     if (defaultTargetPlatform != TargetPlatform.iOS) {
       throw UnimplementedError(
         'initiateOnDeviceConversionMeasurementWithHashedPhoneNumber() is only supported on iOS.',
       );
     }
-    await _delegate.initiateOnDeviceConversionMeasurement(
-      hashedPhoneNumber: hashedPhoneNumber,
-    );
+    await _delegate.initiateOnDeviceConversionMeasurement(hashedPhoneNumber: hashedPhoneNumber);
   }
 }
 
@@ -1353,7 +1250,8 @@ Map<String, Object> filterOutNulls(Map<String, Object?> parameters) {
 }
 
 @visibleForTesting
-const String valueAndCurrencyMustBeTogetherError = 'If you supply the "value" '
+const String valueAndCurrencyMustBeTogetherError =
+    'If you supply the "value" '
     'parameter, you must also supply the "currency" parameter.';
 
 void _requireValueAndCurrencyTogether(double? value, String? currency) {
@@ -1364,21 +1262,13 @@ void _requireValueAndCurrencyTogether(double? value, String? currency) {
 
 void _logEventNameValidation(String name) {
   if (_reservedEventNames.contains(name)) {
-    throw ArgumentError.value(
-      name,
-      'name',
-      'Event name is reserved and cannot be used',
-    );
+    throw ArgumentError.value(name, 'name', 'Event name is reserved and cannot be used');
   }
 
   const String kReservedPrefix = 'firebase_';
 
   if (name.startsWith(kReservedPrefix)) {
-    throw ArgumentError.value(
-      name,
-      'name',
-      'Prefix "$kReservedPrefix" is reserved and cannot be used.',
-    );
+    throw ArgumentError.value(name, 'name', 'Prefix "$kReservedPrefix" is reserved and cannot be used.');
   }
 }
 
@@ -1388,20 +1278,16 @@ List<Map<String, dynamic>>? _marshalItems(List<AnalyticsEventItem>? items) {
   return items.map((AnalyticsEventItem item) => item.asMap()).toList();
 }
 
-void _assertParameterTypesAreCorrect(
-  Map<String, Object>? parameters,
-) =>
-    parameters?.forEach((key, value) {
-      assert(
-        value is String || value is num,
-        "'string' OR 'number' must be set as the value of the parameter: $key. $value found instead",
-      );
-    });
+void _assertParameterTypesAreCorrect(Map<String, Object>? parameters) => parameters?.forEach((key, value) {
+  assert(
+    value is String || value is num,
+    "'string' OR 'number' must be set as the value of the parameter: $key. $value found instead",
+  );
+});
 
-void _assertItemsParameterTypesAreCorrect(List<AnalyticsEventItem>? items) =>
-    items?.forEach((item) {
-      _assertParameterTypesAreCorrect(item.parameters);
-    });
+void _assertItemsParameterTypesAreCorrect(List<AnalyticsEventItem>? items) => items?.forEach((item) {
+  _assertParameterTypesAreCorrect(item.parameters);
+});
 
 /// Reserved event names that cannot be used.
 ///
